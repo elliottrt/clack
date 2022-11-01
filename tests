@@ -1,0 +1,35 @@
+fsilent
+
+def compound(x) ceil(x) / abs(x)
+def multivar(x, y, z) x+y+z
+def manyvar(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) c+15
+def imax(a, b) greaterequ(a, b) * a + less(a, b) * b
+def phys(xpos, initial_v, accel, time) xpos + initial_v*time + (accel*time*time/2)
+def zeroarg() 5
+var samename 15
+def samename() 20
+def vararg(T) samename * T
+
+equ(sqrt(abs(sin(pi / 2))), 1)
+
+equ(compound(0.75), 4/3)
+
+equ(multivar(1, 2, 3), 6)
+
+equ(log(1000, 10), 3)
+
+equ(manyvar(0, 0, tan(pi), 0, 0, 100, 0, -sqrt(15), 87, 0, 1, 0, 0, 50, 0, 1005, nequ(10, 10), 0, 0, 0, -10, 0, 0, 0, sin(pi), 0), tan(pi)+15)
+
+equ(imax(50, 10), 50)
+
+equ(phys(6, 1.5, 1, 10), 71)
+
+equ(zeroarg(), 5)
+
+equ(samename, 15)
+
+equ(samename(), 20)
+
+equ(vararg(5), 75)
+
+fsilent
