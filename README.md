@@ -13,6 +13,7 @@ or using the other functions declared in clack.h
 clear - clears the screen, only works if ansi escape codes are supported
 
 def - defines a function, in the format 'def <name>(<args>) <body expression>'
+      functions with the same <name> must have different argument counts
 	
 deflist - lists all defined functions along with their body or 'system function' 
 		  for functions defined in the code
@@ -33,3 +34,7 @@ store - stores the last result into a variable
 var - defines a variable with the form 'var <name> <value expression>'
 	
 varlist - lists all variables and a value or 'system variable'
+	
+### Other
+	
+Function pointers may be passed as an argument to a function with the prefix '&'.
