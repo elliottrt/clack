@@ -7,10 +7,6 @@
 
 namespace Clack {
 
-std::string toSafeName(const std::string &var);
-
-std::string unSafeName(const std::string &var);
-
 class Function {
 
 	std::function<void(double)> voidfunction1;
@@ -24,12 +20,18 @@ class Function {
 	std::vector<std::string> argNames;
 	bool system = true;
 
+	static const char safePrefix = '$';
+	static const char safeSuffix = '$';
+
 	void makeReplaceSafe(void);
+
+	static std::string toSafeName(const std::string &var);
+
+	static std::string unSafeName(const std::string &var);
 
 public:
 
-	static const char safePrefix = '$';
-	static const char safeSuffix = '$';
+	static std::vector<std::string> parseArgNames(const std::string &args);
 
 	Function(std::function<void(double)> function);
 
@@ -41,7 +43,7 @@ public:
 
 	Function(const std::string &sig, const std::string &funcexpr);
 
-	std::string call(const std::vector<double> &args);
+	std::string call(const std::vector<std::string> &args);
 
 	bool getSystem(void) const { return this->system; }
 

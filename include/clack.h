@@ -28,10 +28,12 @@ static inline bool varValid(char const f) {
 	return std::isalnum(f) || f == '_';
 }
 
+static const char functionPointerPrefix = '&';
+
 class Solver {
 	//friend struct Expression;
 
-	std::map<std::string, Function> functions {};
+	std::map<std::pair<std::string, int>, Function> functions {};
 	std::map<std::string, Variable> variables {};
 
 	double lastResult;
@@ -60,7 +62,9 @@ public:
 
 	size_t getVarCount(void) const;
 
-	std::string callFunction(const std::string &name, const std::vector<double> &args) ;
+	std::string callFunction(const std::string &name, const std::vector<std::string> &args) ;
+
+	bool functionExists(const std::string &name, const int args) const;
 
 	bool functionExists(const std::string &name) const;
 
@@ -68,38 +72,44 @@ public:
 
 	void setFunctionSystemVoid(std::string funcName, std::function<void(double)> func) {
 		if (func != nullptr) {
-			this->functions.erase(funcName);
-			this->functions.insert({funcName, Function(func)});
+			std::pair<std::string, int> funcPair = std::make_pair(funcName, 1);
+			this->functions.erase(funcPair);
+			this->functions.insert({funcPair, Function(func)});
 		}
 	}
 
 	void setFunctionSystem(std::string funcName, std::function<double(void)> func) {
 		if (func != nullptr) {
-			this->functions.erase(funcName);
-			this->functions.insert({funcName, Function(func)});
+			std::pair<std::string, int> funcPair = std::make_pair(funcName, 0);
+			this->functions.erase(funcPair);
+			this->functions.insert({funcPair, Function(func)});
 		}
 	}
 
 	void setFunctionSystem(std::string funcName, std::function<double(double)> func) {
 		if (func != nullptr) {
-			this->functions.erase(funcName);
-			this->functions.insert({funcName, Function(func)});
+			std::pair<std::string, int> funcPair = std::make_pair(funcName, 1);
+			this->functions.erase(funcPair);
+			this->functions.insert({funcPair, Function(func)});
 		}
 	}
 
 	void setFunctionSystem(std::string funcName, std::function<double(double, double)> func) {
 		if (func != nullptr) {
-			this->functions.erase(funcName);
-			this->functions.insert({funcName, Function(func)});
+			std::pair<std::string, int> funcPair = std::make_pair(funcName, 2);
+			this->functions.erase(funcPair);
+			this->functions.insert({funcPair, Function(func)});
 		}
 	}
 
 	void setFunction(std::string funcName, std::string args, std::string funcexpr) {
-		if (this->functions.count(funcName) && this->functions.at(funcName).getSystem()) {
+		std::pair<std::string, int> funcPair = std::make_pair(funcName, Function::parseArgNames(args).size());
+
+		if (this->functions.count(funcPair) && this->functions.at(funcPair).getSystem()) {
 			std::cerr << "ERROR: Attempted to set system function " << funcName << std::endl;
 		} else {
-			this->functions.erase(funcName);
-			this->functions.insert({funcName, Function(args, funcexpr)});
+			this->functions.erase(funcPair);
+			this->functions.insert({funcPair, Function(args, funcexpr)});
 		}
 	}
 

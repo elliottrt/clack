@@ -1,23 +1,10 @@
 #include "function.h"
 
-std::string Clack::toSafeName(const std::string &var) {
-	return Clack::Function::safePrefix + var + Clack::Function::safeSuffix;
-}
-
-std::string Clack::unSafeName(const std::string &var) {
-	std::string undone = var;
-	//undone.erase(0, Function::safePrefix.length());
-	//undone.erase(undone.size() - Function::safeSuffix.length(), Function::safeSuffix.length());
-	undone.erase(0, 1);
-	undone.erase(undone.size() - 1, 1);
-	return undone;
-}
-
 void Clack::Function::makeReplaceSafe(void) {
 	this->safeExpression = functionExpression;
 	for (std::string varName: this->argNames) {
 		size_t start_pos = 0;
-		std::string safeVarName = Clack::toSafeName(varName);
+		std::string safeVarName = Clack::Function::toSafeName(varName);
 	    while ((start_pos = this->safeExpression.find(varName, start_pos)) != std::string::npos) {
 
 	    	size_t nextComma = this->safeExpression.find(",", start_pos);
@@ -40,8 +27,46 @@ void Clack::Function::makeReplaceSafe(void) {
 	    }
 	}
 	for (size_t i = 0; i < this->argNames.size(); ++i) {
-		this->argNames[i] = Clack::toSafeName(this->argNames[i]);
+		this->argNames[i] = Clack::Function::toSafeName(this->argNames[i]);
 	}
+}
+
+std::string Clack::Function::toSafeName(const std::string &var) {
+	return Clack::Function::safePrefix + var + Clack::Function::safeSuffix;
+}
+
+std::string Clack::Function::unSafeName(const std::string &var) {
+	std::string undone = var;
+	//undone.erase(0, Function::safePrefix.length());
+	//undone.erase(undone.size() - Function::safeSuffix.length(), Function::safeSuffix.length());
+	undone.erase(0, 1);
+	undone.erase(undone.size() - 1, 1);
+	return undone;
+}
+
+std::vector<std::string> Clack::Function::parseArgNames(const std::string &args) {
+
+	std::string signature = args;
+	std::vector<std::string> argNames;
+
+	signature.erase(0, 1);
+	// remove close paren
+	signature.erase(signature.size()-1, 1);
+
+	// remove whitespace
+	signature.erase(std::remove_if(signature.begin(), 
+								   signature.end(), 
+								   (int(*)(int))std::isspace), 
+								   signature.end());
+
+	std::stringstream argStream(signature);
+
+	std::string arg;
+	while (std::getline(argStream, arg, ',')) {
+		argNames.push_back(arg);
+	}
+
+	return argNames;
 }
 
 Clack::Function::Function(std::function<void(double)> function) {
@@ -70,23 +95,7 @@ Clack::Function::Function(const std::string &sig, const std::string &funcexpr) {
 
 	std::string signature = sig;
 
-	// remove open paren
-	signature.erase(0, 1);
-	// remove close paren
-	signature.erase(signature.size()-1, 1);
-
-	// remove whitespace
-	signature.erase(std::remove_if(signature.begin(), 
-								   signature.end(), 
-								   (int(*)(int))std::isspace), 
-								   signature.end());
-
-	std::stringstream argStream(signature);
-
-	std::string arg;
-	while (std::getline(argStream, arg, ',')) {
-		this->argNames.push_back(arg);
-	}
+	this->argNames = Clack::Function::parseArgNames(sig);
 
 	this->makeReplaceSafe();
 
@@ -97,7 +106,7 @@ Clack::Function::Function(const std::string &sig, const std::string &funcexpr) {
 	//for (auto v: this->argNames) std::cout << v << std::endl;
 }
 
-std::string Clack::Function::call(const std::vector<double> &args) {
+std::string Clack::Function::call(const std::vector<std::string> &args) {
 	if (args.size() != this->argNames.size()) {
 		std::cout << "Expected " << this->argNames.size() << " arguments, got " << args.size() << std::endl;
 	}
@@ -106,11 +115,11 @@ std::string Clack::Function::call(const std::vector<double> &args) {
 			case 0: return std::to_string(this->function0());
 			case 1: {
 				if (this->function1)
-					return std::to_string(this->function1(args[0]));
+					return std::to_string(this->function1(std::stod(args[0])));
 				else
 					return std::to_string(0.0);
 			}
-			case 2: return std::to_string(this->function2(args[0], args[1]));
+			case 2: return std::to_string(this->function2(std::stod(args[0]), std::stod(args[1])));
 			default: std::cout << "unreachable: system function with 3+ args" << std::endl; return "0";
 		}
 	} else {
@@ -119,14 +128,13 @@ std::string Clack::Function::call(const std::vector<double> &args) {
 
 		for (int arg = 0; arg < this->argNames.size(); arg++) {
 			std::string var = argNames[arg];
-			std::string val = std::to_string(args[arg]);
 
 			// Code from https://gist.github.com/GenesisFR/cceaf433d5b42dcdddecdddee0657292
 			size_t start_pos = 0;
 		    while ((start_pos = expr.find(var, start_pos)) != std::string::npos)
 		    {
-		        expr.replace(start_pos, var.length(), val);
-		        start_pos += val.length(); // Handles case where 'to' is a substring of 'from'
+		        expr.replace(start_pos, var.length(), args[arg]);
+		        start_pos += args[arg].length(); // Handles case where 'to' is a substring of 'from'
 		    }
 		}
 

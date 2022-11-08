@@ -91,16 +91,26 @@ size_t Clack::Solver::getVarCount(void) const {
 	return this->variables.size();
 }
 
-std::string Clack::Solver::callFunction(const std::string &name, const std::vector<double> &args) {
-	if (this->functionExists(name)) return this->functions.at(name).call(args);
-	else {
-		std::cerr << "ERROR: No function named " << name << std::endl;
-		return 0;
+std::string Clack::Solver::callFunction(const std::string &name, const std::vector<std::string> &args) {
+	std::pair<std::string, int> funcPair = std::make_pair(name, args.size());
+	if (this->functionExists(name, args.size())) {
+		return this->functions.at(funcPair).call(args);
+	} else if (this->functionExists(name)) {
+		std::cerr << "ERROR: Wrong number of arguments for function " << name << std::endl;
+	} else {
+		std::cerr << "ERROR: No function named '" << name << std::endl;
 	}
+	return "0";
+}
+
+bool Clack::Solver::functionExists(const std::string &name, const int args) const {
+	return this->functions.count(std::make_pair(name, args)) > 0;
 }
 
 bool Clack::Solver::functionExists(const std::string &name) const {
-	return this->functions.count(name);
+	for(auto pair : this->functions)
+		if (pair.first.first == name) return true;
+	return false;
 }
 
 size_t Clack::Solver::getFunctionCount(void) const {
@@ -183,12 +193,12 @@ void Clack::Solver::runCommand(std::string cmd) {
 		case 7: {
 			for (auto f: this->functions) {
 				if (f.second.getSystem()) {
-					std::cout << f.first + "(" << f.second.getArgCount() << ") = system function\n";
+					std::cout << f.first.first + "(" << f.second.getArgCount() << ") = system function\n";
 				} else {
 					// TODO: instead of having to redo this each time,
 					// we should have two expressions: safe and dangerous
 					//f.second.makeReplaceDanger();
-					std::cout << f.first + "(";
+					std::cout << f.first.first + "(";
 					for (size_t iArg = 0; iArg < f.second.getArgCount(); ++iArg) {
 						std::cout << f.second.getArg(iArg) + (iArg == f.second.getArgCount() - 1 ? "" : ", ");
 					}
@@ -225,6 +235,7 @@ void Clack::Solver::runCommand(std::string cmd) {
 			if (part[0] == ' ') part.erase(0, 1);
 			if (!Clack::varValidFirst(part[0])) break;
 			for (int i = 1; i < part.size(); i++) if (!Clack::varValid(part[i])) break;
+			if (functionExpr[0] == ' ') functionExpr.erase(0, 1);
 			this->setFunction(part, arglist, functionExpr);
 		} break;
 		case 9: {
@@ -256,7 +267,7 @@ void Clack::Solver::dumpState(std::string toFile) {
 
 	for (auto funcpair: this->functions) {
 		if (!funcpair.second.getSystem()) {
-			out << "def " << funcpair.first << "(";
+			out << "def " << funcpair.first.first << "(";
 			for (size_t iArg = 0; iArg < funcpair.second.getArgCount(); ++iArg) {
 				out << funcpair.second.getArg(iArg) + (iArg == funcpair.second.getArgCount() - 1 ? "" : ", ");
 			}

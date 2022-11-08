@@ -94,11 +94,14 @@ double Clack::Expression::factor(void) {
     	if (this->solver->functionExists(ident) == false) {
     		EXPR_ERR("Unknown function " + ident);
     	}
-    	std::vector<double> resolvedArgs = this->resolveArgs(argList);
-        x = this->solver->solve(this->solver->callFunction(ident, resolvedArgs));
+    	std::vector<std::string> resolvedArgs = this->resolveArgs(argList);
+    	std::string functionExpression = this->solver->callFunction(ident, resolvedArgs);
+        x = this->solver->solve(functionExpression);
     } else {
-    	if (this->c == -1)
+    	if (this->c == -1) {
+    		std::cout << this->expr << std::endl;
     		EXPR_ERR("Reached end of expression")
+    	}
     	else 
     		EXPR_ERR("Unexpected " << this->c << " " << (int) this->c)
     }
@@ -119,14 +122,14 @@ int Clack::Expression::depthFindClose(void) {
 	return ci - 1;
 }
 
-std::vector<double> Clack::Expression::resolveArgs(std::string &args) {
+std::vector<std::string> Clack::Expression::resolveArgs(std::string &args) {
 	// remove spaces
 	args.erase(std::remove_if(args.begin(), args.end(), (int(*)(int))std::isspace), args.end());
 	// put into stream
 	std::stringstream argStream(args);
 
 	std::string arg;
-	std::vector<double> argVector;
+	std::vector<std::string> argVector;
 	// TODO: getline will get commas inside of functions used as args
 	//while (std::getline(argStream, arg, ',')) {
 		//argVector.push_back(Expression(arg, this->solver).solve());
@@ -145,12 +148,16 @@ std::vector<double> Clack::Expression::resolveArgs(std::string &args) {
 			if (n == ')') --depth;
 			if (n == '(') ++depth;
 
-			//std::cout << n << " " << (int)n << std::endl;
-
 			arg += n;
 		}
 
-		if (arg.size() != 0) argVector.push_back(Expression(arg, this->solver).solve());
+		std::string resolvedArg = (arg[0] == Clack::functionPointerPrefix) ? 
+											arg.erase(0, 1) : 
+											std::to_string(Expression(arg, this->solver).solve());
+
+		//std::cout << resolvedArg << std::endl;
+
+		if (arg.size() != 0) argVector.push_back(resolvedArg);
 	}
 	return argVector;
 }

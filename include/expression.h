@@ -25,7 +25,7 @@ class Expression {
 
 	int depthFindClose(void);
 
-	std::vector<double> resolveArgs(std::string &args);
+	std::vector<std::string> resolveArgs(std::string &args);
 
 public:
 
