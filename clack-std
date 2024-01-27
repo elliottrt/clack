@@ -1,0 +1,33 @@
+fsilent
+
+# A collection of utility functions for clack
+
+# simple derivation
+var deriv_eps 0.0001
+def deriv(&f, x, e) ((&f(x+e)-&f(x))/e)
+def deriv(&f, x) deriv(&f, x, deriv_eps)
+
+# random numbers
+def randrange(min, max) (rand() * (max - min)) + min
+def randrangei(min, max) floor(randrange(min, max))
+
+def abs(x) x * (greaterequ(x, 0) * 2 - 1)
+
+def max(a, b) (greaterequ(a, b) * a + less(a, b) * b)
+def min(a, b) (lessequ(a, b) * a + greater(a, b) * b)
+
+def clamp(x, mi, ma) min(max(x, mi), ma)
+
+#logic
+
+def not(x) 1 - x
+def and(x,y) x * y
+def or(x,y) x + y - x * y
+def xor(x,y) x + y - 2 * x * y
+def nand(x,y) 1 - x * y
+def nor(x,y) 1 - (x + y - x * y)
+def xnor(x,y) 1 - x - y + 2 * x * y
+
+def bin(x) 1 - equ(x,0)
+
+fsilent
