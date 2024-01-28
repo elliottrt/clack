@@ -6,6 +6,7 @@
 
 /*
 TODO: a way to change variables programmatically
+TODO: character literal ' ' (space) won't work
 */
 
 int main(void) {

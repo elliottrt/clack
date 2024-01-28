@@ -14,29 +14,27 @@ def randrangei(min, max) floor(randrange(min, max))
 
 # useful functions
 
-def abs(x) (x * (greaterequ(x, 0) * 2 - 1))
+def abs(x) (x * ((x >= 0) * 2 - 1))
+def sign(x) x / abs(x)
 
-def max(a, b) (greaterequ(a, b) * a + less(a, b) * b)
-def min(a, b) (lessequ(a, b) * a + greater(a, b) * b)
+def max(a, b) ((a >= b) * a + (a < b) * b)
+def min(a, b) ((a <= b) * a + (a > b) * b)
 
 def clamp(x, mi, ma) min(max(x, mi), ma)
 
 # logic
 
-def not(x) 1 - x
-def and(x,y) x * y
-def or(x,y) x + y - x * y
-def xor(x,y) x + y - 2 * x * y
-def nand(x,y) 1 - x * y
-def nor(x,y) 1 - (x + y - x * y)
-def xnor(x,y) 1 - x - y + 2 * x * y
+def xor(x,y) (x && !y) || (!x && y)
+def nand(x,y) !(x&&y)
+def nor(x,y) !(x||y)
+def xnor(x,y) !nor(x, y)
 
-def bin(x) nequ(x,0)
+def bin(x) !!x
 
 # control
 
-def if(condition, &then) bin(condition) * &then()
-def if(condition, &then, &else) (bin(condition) * &then()) + (not(bin(condition)) * &else())
+def if(condition, &then) condition && &then()
+def if(condition, &then, &else) (condition && &then()) + (!condition && &else())
 
 def do(&func, times) times * &func() * do(&func, times - 1)
 def do(&func, a0, times) times * &func(a0) * do(&func, a0, times - 1)

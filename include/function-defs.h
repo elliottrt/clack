@@ -29,27 +29,3 @@ double rand_(void) { return random_() / (double) std::minstd_rand::max(); }
 double logbase(double x, double base) {
 	return std::log2(x) / std::log2(base);
 }
-
-// TODO: sign should be possible in std.clk with short circuiting (which is implemented already)
-
-double sign(double x) {
-	if (x == 0) return 0;
-	return x / std::abs(x);
-}
-
-// TODO: add <, <=, >, >=, == (or =), !=
-// as binary operators - greater and less are below addition and subtraction
-// and equals and not equals are below that
-// maybe !, &&, || as well?
-
-double equ(double x, double y) { return x == y; }
-
-double nequ(double x, double y) { return x != y; }
-
-double less(double x, double y) { return x < y; }
-
-double lessequ(double x, double y) { return x <= y; }
-
-double greater(double x, double y) { return x > y; }
-
-double greaterequ(double x, double y) { return x >= y; }

@@ -5,6 +5,7 @@
 #include <cctype>
 
 #include "function.h"
+#include "command_error.h"
 
 /*
 
@@ -113,7 +114,7 @@ public:
 		std::pair<std::string, int> funcPair = std::make_pair(funcName, Function::parseArgNames(args).size());
 
 		if (this->functions.count(funcPair) && this->functions.at(funcPair).getSystem()) {
-			std::cerr << "ERROR: Attempted to set system function " << funcName << std::endl;
+			throw Clack::CommandError("Attempted to set system function " + funcName);
 		} else {
 			this->functions.erase(funcPair);
 			this->functions.insert({funcPair, Function(args, funcexpr)});
@@ -126,23 +127,5 @@ public:
 
 	void dumpState(std::string toFile);
 };
-
-	/*
-	// TODO: templates?
-
-	template<typename F> void setFunctionSystem(std::string funcName, F funcPtr) {
-		if (funcPtr != nullptr) {
-			this->functions.erase(funcName);
-			Function function (funcPtr);
-			this->functions.insert({funcName, function});
-		}
-	}
-
-	template void setFunctionSystem<std::function<void(double)>>(std::string, std::function<void(double)>);
-	template void setFunctionSystem<std::function<double(void)>>(std::string, std::function<double(void)>);
-	template void setFunctionSystem<std::function<double(double)>>(std::string, std::function<double(double)>);
-	template void setFunctionSystem<std::function<double(double, double)>>(std::string, std::function<double(double, double)>);
-	
-	*/
 
 }

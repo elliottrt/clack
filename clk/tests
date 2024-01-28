@@ -3,7 +3,7 @@ fsilent
 def compound(x) pow(x, x) / sqrt(x)
 def multivar(x, y, z) x+y+z
 def manyvar(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) c+15
-def imax(a, b) greaterequ(a, b) * a + less(a, b) * b
+def imax(a, b) (a >= b) * a + (a < b) * b
 def phys(xpos, initial_v, accel, time) xpos + initial_v*time + (accel*time*time/2)
 def zeroarg() 5
 var samename 15
@@ -15,47 +15,62 @@ def vararg(x) x
 def vararg(x, y) x + y
 
 # make sure nested functions work
-equ(sqrt(round(sin(pi / 2))), 1)
+sqrt(round(sin(pi / 2))) == 1
 
 # make sure compound functions work
-equ(compound(4), 128)
+compound(4) == 128
 
 # make sure multivariable functions work
-equ(multivar(1, 2, 3), 6)
+multivar(1, 2, 3) == 6
 
 # check if we can handle a lot of variables
-equ(manyvar(0, 0, tan(pi), 0, 0, 100, 0, -sqrt(15), 87, 0, 1, 0, 0, 50, 0, 1005, nequ(10, 10), 0, 0, 0, -10, 0, 0, 0, sin(pi), 0), tan(pi)+15)
+manyvar(0, 0, tan(pi), 0, 0, 100, 0, -sqrt(15), 87, 0, 1, 0, 0, 50, 0, 1005, 10 != 10, 0, 0, 0, -10, 0, 0, 0, sin(pi), 0) == tan(pi)+15
 
 # check if logic works
-equ(imax(50, 10), 50)
+imax(50, 10) == 50
 
 # make sure order of operations is followed
-equ(phys(6, 1.5, 1, 10), 71)
+phys(6, 1.5, 1, 10) == 71
 
 # make sure functions work with no args
-equ(zeroarg(), 5)
+zeroarg() == 5
 
 # make sure functions and variables with the same name are chosen properly
-equ(samename, 15)
+samename == 15
 
 # make sure functions and variables with the same name are chosen properly
-equ(samename(), 20)
+samename() == 20
 
 # checking if variable argument functions work
-equ(vararg(100), 100)
+vararg(100) == 100
 
 # checking if variable argument functions work
-equ(vararg(100, 100), 200)
+vararg(100, 100) == 200
 
 # checking if function pointers work
-equ(call(&pointer, 150, 100), 250)
+call(&pointer, 150, 100) == 250
 
 # checking if arguments to a function will
 # be chosen over variables of the same name
-equ(priority(30), 30)
+priority(30) == 30
 
 # checking if argument lists inside of 
 # argument lists work
-equ(multivar(samename(), sin(pi/2), 10), 31)
+multivar(samename(), sin(pi/2), 10) == 31
+
+# do relational operators (<, >, <=, >=, ==, !=)
+# follow order of operations?
+(e < pi + 500) == 1
+(e + 500 > pi) == 1
+(e <= pi * 50) == 1
+(e / e == pi / pi) == 1
+(5 * 6 / 15 != 3 && 5) == 1
+
+# do logical math operators (!, &&, ||) work?
+(0 || 0) == 0
+(1 || 0) == 1
+!!!0 == 1
+(0 && 0) == 0
+(1 && 0) == 0
 
 fsilent

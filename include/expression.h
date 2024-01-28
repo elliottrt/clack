@@ -10,17 +10,17 @@ class Solver;
 class Expression {
 
 	char c = '\0';
-	int i = -1;
+	ssize_t i = -1;
 	std::string expr;
 	Solver *solver;
 
 	void next(void);
 	char peek(void) const;
 	bool check(const char _c);
-	void to(int pos);
+	void to(ssize_t pos);
 
-	double expression(void);
-	double term(void);
+	double expression(bool explore = true);
+	double term(bool explore = true);
 	double factor(bool explore = true);
 
 	int depthFindClose(void);

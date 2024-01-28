@@ -23,27 +23,17 @@ void Clack::Solver::loadBuiltins(void) {
 	setFunctionSystem("asin",  (double(*)(double))&std::asin);
 	setFunctionSystem("acos",  (double(*)(double))&std::acos);
 	setFunctionSystem("atan",  (double(*)(double))&std::atan);
-	//setFunctionSystem("abs",  (double(*)(double))&std::abs);
 	setFunctionSystem("ln",  (double(*)(double))&std::log);
 	setFunctionSystem("ceil",  (double(*)(double))&std::ceil);
 	setFunctionSystem("floor",  (double(*)(double))&std::floor);
 	setFunctionSystem("round",  (double(*)(double))&std::round);
-	//setFunctionSystem("sign", (double(*)(double))&sign);
 
 	setFunctionSystem("print", &print);
 	setFunctionSystem("printa", &printa);
 
 	setFunctionSystem("mod", (double(*)(double, double))&std::fmod);
 	setFunctionSystem("pow", (double(*)(double, double))&std::pow);
-	//setFunctionSystem("max", (double(*)(double, double))&std::fmax);
-	//setFunctionSystem("min", (double(*)(double, double))&std::fmin);
 	setFunctionSystem("log", &logbase);
-	setFunctionSystem("equ", &equ);
-	setFunctionSystem("nequ", &nequ);
-	setFunctionSystem("less", &less);
-	setFunctionSystem("lessequ", &lessequ);
-	setFunctionSystem("greater", &greater);
-	setFunctionSystem("greaterequ", &greaterequ);
 }
 
 void Clack::Solver::reset(void) { 
@@ -67,7 +57,7 @@ void Clack::Solver::reset(void) {
 
 void Clack::Solver::setVar(const std::string var, const double val, const bool system) {
 	if (this->variables.count(var) && this->variables.at(var).system) {
-		throw Clack::CommandError("ERROR: Attempted to set system variable " + var);
+		throw Clack::CommandError("Attempted to set system variable " + var);
 	} else {
 		this->variables.erase(var);
 		this->variables.insert({var, Variable(val, system)});
@@ -175,26 +165,36 @@ void Clack::Solver::runCommand(std::string cmd) {
 			// We only allow the first character to be a letter,
 			// and the rest can only be numbers and letters
 			if (!std::isalpha(part[0])) break;
-			for (int i = 1; i < part.size(); i++) if (!std::isalnum(part[i])) break;
+			for (size_t i = 1; i < part.size(); i++) if (!std::isalnum(part[i])) break;
 			double variableValue = this->solve(cmd.substr(4 + part.size(), std::string::npos));
 			this->setVar(part, variableValue);
 		} break;
 		case 1: {
-			std::ifstream f(cmd.substr(5, std::string::npos));
+			std::string fname = cmd.substr(5, std::string::npos);
+
+			std::ifstream f(fname);
 
 			if (!f.is_open())
-				throw Clack::CommandError("Unable to open file " + cmd.substr(5, std::string::npos));
+				throw Clack::CommandError("Unable to open file " + fname);
 
 			std::string line;
-			int cmds_ran = 0;
+			size_t lineNumber = 1;
 			while (std::getline(f, line)) {
 				if (line.length() > 0) {
 					if (!this->fileSilent && line != "fsilent") std::cout << "$ " + line + "\n";
-					this->runCommand(line);
-					cmds_ran++;
+
+					try {
+						this->runCommand(line);
+					} catch (const Clack::CommandError &cmdError) {
+						std::cerr << cmdError.what() << " -- file " + fname + ", line " << lineNumber << std::endl;
+						break;
+					} catch (const Clack::ExpressionError &exprError) {
+						std::cerr << exprError.what() << " -- file " + fname + ", line " << lineNumber << std::endl;
+						break;
+					}
 				}
+				lineNumber++;
 			}
-			// std::cout << "Ran " << cmds_ran << " commands from \'" << cmd.substr(5, std::string::npos) << "\'\n";
 		} break;
 		case 3: { 
 			this->reset(); 
@@ -212,7 +212,7 @@ void Clack::Solver::runCommand(std::string cmd) {
 			// We only allow the first character to be a letter,
 			// and the rest can only be numbers and letters
 			if (!std::isalpha(part[0])) break;
-			for (int i = 1; i < part.size(); i++) if (!std::isalnum(part[i])) break;
+			for (size_t i = 1; i < part.size(); i++) if (!std::isalnum(part[i])) break;
 			this->setVar(part, this->lastResult);
 		} break;
 		case 7: {
@@ -236,7 +236,7 @@ void Clack::Solver::runCommand(std::string cmd) {
 
 			std::getline(cmdSS, part, ')'); part += ")";
 
-			int defStart = std::string("def ").size() + part.size();
+			size_t defStart = std::string("def ").size() + part.size();
 
 			// TODO: this is a bad way of checking for parenthesis
 			if (defStart - 1 >= cmd.length())
@@ -248,7 +248,7 @@ void Clack::Solver::runCommand(std::string cmd) {
 			if (functionExpr.size() == 0 || functionExpr == " ")
 				throw Clack::CommandError("No function definition for function " + part);
 
-			int parenIndex = part.find("(");
+			size_t parenIndex = part.find("(");
 			if (parenIndex == std::string::npos)
 				throw Clack::CommandError("No argument list for function " + part);
 
@@ -259,7 +259,7 @@ void Clack::Solver::runCommand(std::string cmd) {
 			// and the rest can only be numbers and letters
 			if (part[0] == ' ') part.erase(0, 1);
 			if (!Clack::varValidFirst(part[0])) break;
-			for (int i = 1; i < part.size(); i++) if (!Clack::varValid(part[i])) break;
+			for (size_t i = 1; i < part.size(); i++) if (!Clack::varValid(part[i])) break;
 			if (functionExpr[0] == ' ') functionExpr.erase(0, 1);
 			this->setFunction(part, arglist, functionExpr);
 		} break;
@@ -277,7 +277,7 @@ void Clack::Solver::runCommand(std::string cmd) {
 			this->fileSilent = !this->fileSilent;
 		} break;
 		default: {
-			std::cerr << "ERROR: Unreachable: default command" << std::endl;
+			std::cerr << "Unreachable: default command" << std::endl;
 		}
 	}
 }

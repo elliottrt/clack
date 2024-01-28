@@ -1,6 +1,7 @@
 #include "function.h"
 #include "clack.h"
 #include "expression_error.h"
+#include "command_error.h"
 
 void Clack::Function::makeReplaceSafe(void) {
 	this->safeExpression = functionExpression;
@@ -138,7 +139,7 @@ std::string Clack::Function::call(const std::vector<std::string> &args) {
 
 		std::string expr = "(" + this->safeExpression + ")";
 
-		for (int arg = 0; arg < this->argNames.size(); arg++) {
+		for (size_t arg = 0; arg < this->argNames.size(); arg++) {
 			// check if the expected argument is a function pointer
 			std::string var = argNames[arg];
 			// check char 1 to skip safe prefix
@@ -172,6 +173,8 @@ std::string Clack::Function::call(const std::vector<std::string> &args) {
 		        start_pos += args[arg].length(); // Handles case where 'to' is a substring of 'from'
 		    }
 		}
+
+		// std::cout << expr << std::endl;
 
 	 	return expr;
 	}

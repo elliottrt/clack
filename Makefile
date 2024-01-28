@@ -2,7 +2,7 @@ CXX=g++
 
 OUT=clack
 
-CXXFLAGS=-O2 -std=c++11 -Iinclude/
+CXXFLAGS=-O2 -std=c++11 -Iinclude/ -Wall -Wextra -Wpedantic
 
 CPPSRC=$(wildcard src/*.cpp) $(wildcard *.cpp)
 
