@@ -6,7 +6,7 @@
 /*
 TODO: a way to change variables programmatically
 TODO: character literal ' ' (space) won't work
-TODO: macros that evaluate and are passed to Clack::Solver::runCommand()
+TODO: error messages should show the expression they're evaluating
 */
 
 int main(void) {

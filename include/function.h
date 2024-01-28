@@ -24,13 +24,12 @@ class Function {
 
 	void makeReplaceSafe(void);
 
-	static std::string toSafeName(const std::string &var);
-
-	static std::string unSafeName(const std::string &var);
-
 public:
 
 	static std::vector<std::string> parseArgNames(const std::string &args);
+
+	static std::string toSafeName(const std::string &var);
+	static std::string unSafeName(const std::string &var);
 
 	Function(std::function<mathtype_t(void)> function);
 	Function(std::function<mathtype_t(mathtype_t)> function);

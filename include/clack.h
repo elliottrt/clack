@@ -66,10 +66,10 @@ public:
 
 	size_t getFunctionCount(void) const;
 
-	void setFunctionSystem(std::string funcName, std::function<mathtype_t(void)> func);
-	void setFunctionSystem(std::string funcName, std::function<mathtype_t(mathtype_t)> func);
-	void setFunctionSystem(std::string funcName, std::function<mathtype_t(mathtype_t, mathtype_t)> func);
-	void setFunction(std::string funcName, std::string args, std::string funcexpr);
+	void setFunctionSystem(const std::string &funcName, std::function<mathtype_t(void)> func);
+	void setFunctionSystem(const std::string &funcName, std::function<mathtype_t(mathtype_t)> func);
+	void setFunctionSystem(const std::string &funcName, std::function<mathtype_t(mathtype_t, mathtype_t)> func);
+	void setFunction(const std::string &funcName, const std::string &args, const std::string &funcexpr);
 
 	mathtype_t solve(std::string expr);
 

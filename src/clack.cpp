@@ -122,7 +122,7 @@ size_t Clack::Solver::getFunctionCount(void) const {
 	return this->functions.size();
 }
 
-void Clack::Solver::setFunctionSystem(std::string funcName, std::function<mathtype_t(void)> func) {
+void Clack::Solver::setFunctionSystem(const std::string &funcName, std::function<mathtype_t(void)> func) {
 	if (func != nullptr) {
 		std::pair<std::string, int> funcPair = std::make_pair(funcName, 0);
 		this->functions.erase(funcPair);
@@ -130,7 +130,7 @@ void Clack::Solver::setFunctionSystem(std::string funcName, std::function<mathty
 	}
 }
 
-void Clack::Solver::setFunctionSystem(std::string funcName, std::function<mathtype_t(mathtype_t)> func) {
+void Clack::Solver::setFunctionSystem(const std::string &funcName, std::function<mathtype_t(mathtype_t)> func) {
 	if (func != nullptr) {
 		std::pair<std::string, int> funcPair = std::make_pair(funcName, 1);
 		this->functions.erase(funcPair);
@@ -138,7 +138,7 @@ void Clack::Solver::setFunctionSystem(std::string funcName, std::function<mathty
 	}
 }
 
-void Clack::Solver::setFunctionSystem(std::string funcName, std::function<mathtype_t(mathtype_t, mathtype_t)> func) {
+void Clack::Solver::setFunctionSystem(const std::string &funcName, std::function<mathtype_t(mathtype_t, mathtype_t)> func) {
 	if (func != nullptr) {
 		std::pair<std::string, int> funcPair = std::make_pair(funcName, 2);
 		this->functions.erase(funcPair);
@@ -146,7 +146,7 @@ void Clack::Solver::setFunctionSystem(std::string funcName, std::function<mathty
 	}
 }
 
-void Clack::Solver::setFunction(std::string funcName, std::string args, std::string funcexpr) {
+void Clack::Solver::setFunction(const std::string &funcName, const std::string &args, const std::string &funcexpr) {
 	std::pair<std::string, int> funcPair = std::make_pair(funcName, Clack::Function::parseArgNames(args).size());
 
 	if (this->functions.count(funcPair) && this->functions.at(funcPair).getSystem()) {
@@ -178,17 +178,17 @@ void Clack::Solver::runCommand(std::string cmd) {
 	// TODO: command descriptions
 
 	static std::map<std::string, int> commandList = {{
-		{"var", 	0},
-		{"file", 	1},
-		{"reset", 	3},
-		{"varlist", 4},
-		{"clear", 	5},
-		{"store", 	6},
-		{"deflist",	7},
-		{"def", 	8},
-		{"save",	9},
-		{"help",	10},
-		{"fsilent", 11}
+		{"var", 		0},
+		{"file", 		1},
+		{"reset", 		3},
+		{"varlist", 	4},
+		{"clear", 		5},
+		{"store", 		6},
+		{"deflist",		7},
+		{"def", 		8},
+		{"save",		9},
+		{"help",		10},
+		{"fsilent", 	11}
 	}};
 
 	if (commandList.count(part) == 0) {
@@ -266,17 +266,13 @@ void Clack::Solver::runCommand(std::string cmd) {
 				if (f.second.getSystem()) {
 					std::cout << f.first.first + "(" << f.second.getArgCount() << ") = system function\n";
 				} else {
-					// TODO: instead of having to redo this each time,
-					// we should have two expressions: safe and dangerous
-					//f.second.makeReplaceDanger();
 					std::cout << f.first.first + "(";
 					for (size_t iArg = 0; iArg < f.second.getArgCount(); ++iArg) {
 						std::cout << f.second.getArg(iArg) + (iArg == f.second.getArgCount() - 1 ? "" : ", ");
 					}
 					std::cout << ") = " + f.second.getExpression() << std::endl;
-					//f.second.makeReplaceSafe();
 				}
-			} 
+			}
 		} break;
 		case 8: {
 

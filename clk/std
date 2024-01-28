@@ -28,16 +28,16 @@ def not(x) !x
 def and(x, y) x && y
 def or(x, y) x || y
 def xor(x,y) (x && !y) || (!x && y)
-def nand(x,y) !(x&&y)
-def nor(x,y) !(x||y)
-def xnor(x,y) !nor(x, y)
+def nand(x,y) !(x && y)
+def nor(x,y) !(x || y)
+def xnor(x,y) !xor(x, y)
 
 def bin(x) !!x
 
 # control
 
 def if(condition, &then) condition && &then()
-def if(condition, &then, &else) (condition && &then()) + (!condition && &else())
+def if(condition, &then, &else) (condition && &then()) || (!condition && &else())
 
 def do(&func, times) times * &func() * do(&func, times - 1)
 def do(&func, a0, times) times * &func(a0) * do(&func, a0, times - 1)

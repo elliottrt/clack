@@ -50,6 +50,7 @@ std::string Clack::Function::toSafeName(const std::string &var) {
 }
 
 std::string Clack::Function::unSafeName(const std::string &var) {
+
 	std::string undone = var;
 	//undone.erase(0, Function::safePrefix.length());
 	//undone.erase(undone.size() - Function::safeSuffix.length(), Function::safeSuffix.length());
@@ -90,13 +91,13 @@ Clack::Function::Function(std::function<mathtype_t(void)> function) {
 
 Clack::Function::Function(std::function<mathtype_t(mathtype_t)> function) {
 	this->function1 = function;
-	this->argNames.push_back("x");
+	this->argNames.push_back(Clack::Function::toSafeName("x"));
 }
 
 Clack::Function::Function(std::function<mathtype_t(mathtype_t, mathtype_t)> function) {
 	this->function2 = function;
-	this->argNames.push_back("x");
-	this->argNames.push_back("y");
+	this->argNames.push_back(Clack::Function::toSafeName("x"));
+	this->argNames.push_back(Clack::Function::toSafeName("y"));
 }
 
 Clack::Function::Function(const std::string &sig, const std::string &funcexpr) {
