@@ -51,7 +51,7 @@ double Clack::Expression::expression(void) {
     }
 }
 
-// the "&& x != 0" allows short circuiting?
+// the "&& x != 0" allows short circuiting
 double Clack::Expression::term(void) {
 	double x = this->factor();
 	//std::cout << this->expr[this->i] << " rest of expr (term): " << this->expr.substr(this->i) << std::endl;
@@ -98,6 +98,16 @@ double Clack::Expression::factor(void) {
 			this->next();
 
         x = std::stod(this->expr.substr(startPos, this->i - startPos));
+	} else if (this->check('\'')) {
+
+		x = this->peek();
+
+		this->next();
+
+		if (!this->check('\''))
+			EXPR_ERR(("Expected \' following \'" + std::string(1, (char) x)))
+
+		return x;
 
     } else if (Clack::varValidFirst(this->c)) { // functions and variables
 
