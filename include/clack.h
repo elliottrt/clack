@@ -39,7 +39,6 @@ struct Variable {
 };
 
 class Solver {
-	//friend struct Expression;
 
 	std::map<std::pair<std::string, int>, Function> functions {};
 	std::map<std::string, Variable> variables {};
@@ -64,7 +63,7 @@ public:
 
 	void setVar(const std::string var, const double val, const bool system = false);
 
-	double getVar(const std::string &name) const;
+    double getVar(const std::string &name);
 
 	bool varExists(const std::string &name) const;
 

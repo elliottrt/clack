@@ -1,6 +1,6 @@
 fsilent
 
-def compound(x) ceil(x) / abs(x)
+def compound(x) pow(x, x) / sqrt(x)
 def multivar(x, y, z) x+y+z
 def manyvar(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) c+15
 def imax(a, b) greaterequ(a, b) * a + less(a, b) * b
@@ -15,10 +15,10 @@ def vararg(x) x
 def vararg(x, y) x + y
 
 # make sure nested functions work
-equ(sqrt(abs(sin(pi / 2))), 1)
+equ(sqrt(round(sin(pi / 2))), 1)
 
 # make sure compound functions work
-equ(compound(0.75), 4/3)
+equ(compound(4), 128)
 
 # make sure multivariable functions work
 equ(multivar(1, 2, 3), 6)

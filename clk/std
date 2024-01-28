@@ -14,7 +14,7 @@ def randrangei(min, max) floor(randrange(min, max))
 
 # useful functions
 
-def abs(x) x * (greaterequ(x, 0) * 2 - 1)
+def abs(x) (x * (greaterequ(x, 0) * 2 - 1))
 
 def max(a, b) (greaterequ(a, b) * a + less(a, b) * b)
 def min(a, b) (lessequ(a, b) * a + greater(a, b) * b)

@@ -1,10 +1,11 @@
 #include <iostream>
 #include <string>
+
 #include "include/clack.h"
+#include "include/command_error.h"
 
 /*
-TODO: print(f) and printa(a) -> print double or ascii, return argument
-TODO: characters as numbers -> 'A' = 65
+TODO: a way to change variables programmatically
 */
 
 int main(void) {
@@ -16,7 +17,12 @@ int main(void) {
 		std::cout << "$ ";
 		std::getline(std::cin, in);
 		if (in.size() == 0) break;
-		solver.runCommand(in);
+
+		try { solver.runCommand(in); }
+		catch (const Clack::CommandError &cmdError) {
+			std::cerr << cmdError.what() << std::endl;
+		}
+
 	}
 
 	return 0;

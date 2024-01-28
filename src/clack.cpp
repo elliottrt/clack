@@ -1,6 +1,8 @@
 #include "clack.h"
 #include "expression.h"
 #include "function-defs.h"
+#include "expression_error.h"
+#include "command_error.h"
 
 #include <sstream>
 #include <fstream>
@@ -26,7 +28,7 @@ void Clack::Solver::loadBuiltins(void) {
 	setFunctionSystem("ceil",  (double(*)(double))&std::ceil);
 	setFunctionSystem("floor",  (double(*)(double))&std::floor);
 	setFunctionSystem("round",  (double(*)(double))&std::round);
-	setFunctionSystem("sign", (double(*)(double))&sign);
+	//setFunctionSystem("sign", (double(*)(double))&sign);
 
 	setFunctionSystem("print", &print);
 	setFunctionSystem("printa", &printa);
@@ -65,19 +67,18 @@ void Clack::Solver::reset(void) {
 
 void Clack::Solver::setVar(const std::string var, const double val, const bool system) {
 	if (this->variables.count(var) && this->variables.at(var).system) {
-		std::cerr << "ERROR: Attempted to set system variable " << var << std::endl;
+		throw Clack::CommandError("ERROR: Attempted to set system variable " + var);
 	} else {
 		this->variables.erase(var);
 		this->variables.insert({var, Variable(val, system)});
 	}
 }
 
-double Clack::Solver::getVar(const std::string &name) const {
-	if (this->varExists(name)) return this->variables.at(name).value;
-	else {
-		std::cerr << "ERROR: No variable named " << name << std::endl;
-		return 0;
-	}
+double Clack::Solver::getVar(const std::string &name) {
+	if (this->varExists(name)) 
+		return this->variables.at(name).value;
+	else 
+		throw Clack::CommandError("No variable named " + name);
 }
 
 bool Clack::Solver::varExists(const std::string &name) const {
@@ -90,23 +91,20 @@ size_t Clack::Solver::getVarCount(void) const {
 
 std::string Clack::Solver::callFunction(const std::string &name, const std::vector<std::string> &args) {
 
-	std::pair<std::string, int> funcPair = std::make_pair(name, args.size());
-
 	if (this->functionExists(name, args.size())) {
 
+		std::pair<std::string, int> funcPair = std::make_pair(name, args.size());
 		return this->functions.at(funcPair).call(args);
 
 	} else if (this->functionExists(name)) {
 
-		std::cerr << "ERROR: Wrong number of arguments for function " << name << std::endl;
+		throw Clack::ExpressionError("Wrong number of arguments for function " + name);
 
 	} else {
 
-		std::cerr << "ERROR: No function named '" << name << std::endl;
-
+		throw Clack::ExpressionError("No function named " + name);
+		
 	}
-	
-	return "0";
 
 }
 
@@ -125,7 +123,10 @@ size_t Clack::Solver::getFunctionCount(void) const {
 }
 
 double Clack::Solver::solve(std::string expr) {
-	this->lastResult = Clack::Expression(expr, this).solve();
+
+	Clack::Expression clackExpression = Clack::Expression(expr, this);
+	this->lastResult = clackExpression.solve();
+
 	return this->lastResult;
 }
 
@@ -138,6 +139,7 @@ void Clack::Solver::runCommand(std::string cmd) {
 	cmdSS >> part;
 
 	// TODO: turn map into map of lambdas
+	// TODO: command descriptions
 
 	static std::map<std::string, int> commandList = {{
 		{"var", 	0},
@@ -154,7 +156,16 @@ void Clack::Solver::runCommand(std::string cmd) {
 	}};
 
 	if (commandList.count(part) == 0) {
-		std::cout << this->solve(cmd) << std::endl;
+
+		try {
+
+			double result = this->solve(cmd);
+			std::cout << "Result: " << result << std::endl;
+
+		} catch (const Clack::ExpressionError &exprError) {
+			std::cerr << exprError.what() << std::endl;
+		}
+		
 		return;
 	}
 
@@ -170,6 +181,10 @@ void Clack::Solver::runCommand(std::string cmd) {
 		} break;
 		case 1: {
 			std::ifstream f(cmd.substr(5, std::string::npos));
+
+			if (!f.is_open())
+				throw Clack::CommandError("Unable to open file " + cmd.substr(5, std::string::npos));
+
 			std::string line;
 			int cmds_ran = 0;
 			while (std::getline(f, line)) {
@@ -179,7 +194,7 @@ void Clack::Solver::runCommand(std::string cmd) {
 					cmds_ran++;
 				}
 			}
-			std::cout << "Ran " << cmds_ran << " commands from \'" << cmd.substr(5, std::string::npos) << "\'\n";
+			// std::cout << "Ran " << cmds_ran << " commands from \'" << cmd.substr(5, std::string::npos) << "\'\n";
 		} break;
 		case 3: { 
 			this->reset(); 
@@ -224,24 +239,18 @@ void Clack::Solver::runCommand(std::string cmd) {
 			int defStart = std::string("def ").size() + part.size();
 
 			// TODO: this is a bad way of checking for parenthesis
-			if (defStart - 1 >= cmd.length()) {
-				std::cerr << "ERROR: function definition requires parenthesis" << std::endl;
-				return;
-			}
+			if (defStart - 1 >= cmd.length())
+				throw Clack::CommandError("Function definition requires parenthesis");
 
 			std::string functionExpr = cmd.substr(defStart - 1);
 
 			// if there is no function body, we error
-			if (functionExpr.size() == 0 || (functionExpr.size() == 1 && functionExpr == " ")) {
-				std::cerr << "ERROR: No function definition for function " << part << std::endl;
-				return;
-			}
+			if (functionExpr.size() == 0 || functionExpr == " ")
+				throw Clack::CommandError("No function definition for function " + part);
 
 			int parenIndex = part.find("(");
-			if (parenIndex == std::string::npos) {
-				std::cerr << "ERROR: No argument list for function " << part << std::endl;
-				return;
-			}
+			if (parenIndex == std::string::npos)
+				throw Clack::CommandError("No argument list for function " + part);
 
 			std::string arglist = part.substr(parenIndex);
 			part = part.substr(0, parenIndex);

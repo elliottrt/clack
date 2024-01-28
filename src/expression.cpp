@@ -1,11 +1,9 @@
 #include "expression.h"
 #include "clack.h"
+#include "expression_error.h"
 
 #include <iostream>
 #include <cmath>
-
-#define EXPR_ERR_R(M, R) { std::cout << "ERROR: " << M << std::endl; this->errored = true; return R; }
-#define EXPR_ERR(M) EXPR_ERR_R(M, 0)
 
 void Clack::Expression::next(void) { 
 	this->c = ++this->i < this->expr.size() ? this->expr[i] : -1; 
@@ -29,17 +27,14 @@ void Clack::Expression::to(int pos) {
 	this->c = pos >= 0 && pos < this->expr.length() ? this->expr[pos] : -1 ;
 }
 
-Clack::Expression::Expression(std::string &e, Solver *solver) {
-	this->expr = e;
+Clack::Expression::Expression(const std::string &expr, Solver *solver) {
+	this->expr = expr;
 	this->solver = solver;
 	this->next();
-	this->errored = false;
 }
 
 double Clack::Expression::solve(void) {
-	this->errored = false;
-	double result = this->expression();
-	return this->errored ? 0 : result;
+	return this->expression();
 }
 
 double Clack::Expression::expression(void) {
@@ -56,13 +51,26 @@ double Clack::Expression::term(void) {
 	double x = this->factor();
 	//std::cout << this->expr[this->i] << " rest of expr (term): " << this->expr.substr(this->i) << std::endl;
     for (;;) {
-        if (this->check('*') && x != 0) x *= this->factor(); // multiplication
-        else if (this->check('/') && x != 0) x /= this->factor(); // division
+        if (this->check('*')) {
+			if (x != 0)
+				x *= this->factor(); // multiplication
+			else // short circuit by discarding next without function calls
+				this->factor(false);
+		}
+        else if (this->check('/')) {
+			if (x != 0)
+				x /= this->factor(); // division
+			else // short circuit by discarding next without function calls
+				this->factor(false);
+		}
+		else if (this->peek() == '(') throw Clack::ExpressionError("Unexpected '(' at position " + std::to_string(this->i));
         else return x;
     }
 }
 
-double Clack::Expression::factor(void) {
+// explore: do we evaluate variables and function calls?
+// we don't want to when we short circuit
+double Clack::Expression::factor(bool explore) {
 	if (this->check('+')) return this->factor(); // unary plus
     if (this->check('-')) return -this->factor(); // unary minus
 
@@ -76,7 +84,7 @@ double Clack::Expression::factor(void) {
 
     if (this->peek() == '(') { // parentheses
 
-		//std::cout << "rest of expr (paren): " << this->expr.substr(this->i) << std::endl;
+		// std::cout << "rest of expr (paren): " << this->expr.substr(this->i) << std::endl;
 
 		int closingLocation = this->depthFindClose();
 
@@ -86,18 +94,24 @@ double Clack::Expression::factor(void) {
 		//std::cout << "paren expr: " << parenExpression << std::endl;
 
 		// solve whatever's in the parenthesis
-        x = this->solver->solve(parenExpression);
+        if (explore) x = this->solver->solve(parenExpression);
 
 		// i = 1 past closing paren
         this->to(closingLocation + 1);
 
-	// TODO: check for multiple decimal points in number
     } else if ((this->c >= '0' && this->c <= '9') || this->c == '.') { // numbers
 
         while ((this->c >= '0' && this->c <= '9') || this->c == '.') 
 			this->next();
 
-        x = std::stod(this->expr.substr(startPos, this->i - startPos));
+		std::string number = this->expr.substr(startPos, this->i - startPos);
+
+		// TODO: replace this with try/catch around std::stod?
+		if (number == "." || std::count(number.cbegin(), number.cend(), '.') > 1)
+			throw Clack::ExpressionError("Invalid number literal " + number);
+
+        x = std::stod(number);
+
 	} else if (this->check('\'')) {
 
 		x = this->peek();
@@ -105,7 +119,7 @@ double Clack::Expression::factor(void) {
 		this->next();
 
 		if (!this->check('\''))
-			EXPR_ERR(("Expected \' following \'" + std::string(1, (char) x)))
+			throw Clack::ExpressionError("Expected \' following \'" + std::string(1, (char) x));
 
 		return x;
 
@@ -123,52 +137,48 @@ double Clack::Expression::factor(void) {
 
         	argList = this->expr.substr(this->i + 1, closingLocation - this->i - 1);
 
-            if (this->errored) return 0;
-
             this->to(closingLocation + 1);
 
         } else if (this->peek() != '(') { // variables
 
-        	if (this->solver->varExists(ident) == false) {
-        		std::cout << "Unknown variable " << ident << std::endl;
-        		this->errored = true;
-        		return 0;
-        	}
+        	if (this->solver->varExists(ident) == false)
+				throw Clack::ExpressionError("Unknown variable " + ident);
 
         	x = this->solver->getVar(ident);
         	return x;
 
         } else { // If we have more to do
 
-    		x = this->factor();
+    		if (explore) x = this->factor();
 			
     	}
 
-    	if (this->solver->functionExists(ident) == false) {
-    		EXPR_ERR("Unknown function " + ident);
-    	}
+    	if (this->solver->functionExists(ident) == false)
+    		throw Clack::ExpressionError("Unknown function " + ident);
 
-    	std::vector<std::string> resolvedArgs = this->resolveArgs(argList);
+		if (explore) {
+			std::vector<std::string> resolvedArgs = this->resolveArgs(argList);
 
-		/*
-		for (auto s : resolvedArgs) {
-			//std::cout << "arg of " << ident << ": " << s << std::endl;
+			/*
+			for (auto s : resolvedArgs) {
+				//std::cout << "arg of " << ident << ": " << s << std::endl;
+			}
+			*/
+
+			std::string functionExpression = this->solver->callFunction(ident, resolvedArgs);
+
+			x = this->solver->solve(functionExpression);
 		}
-		*/
-
-    	std::string functionExpression = this->solver->callFunction(ident, resolvedArgs);
-        x = this->solver->solve(functionExpression);
 
         //std::cout << ident << "(" << argList << ") = " << functionExpression << " solved and got " << x << std::endl;
 		//std::cout << "rest of expr (funct): " << this->expr.substr(this->i) << std::endl;
 
     } else {
 		
-    	if (this->c == -1) {
-    		EXPR_ERR("Reached end of expression")
-    	}
+    	if (this->c == -1)
+    		throw Clack::ExpressionError("Reached end of expression");
     	else 
-    		EXPR_ERR("Unexpected " << this->c << " " << (int) this->c)
+    		throw Clack::ExpressionError("Unexpected character '" + std::string(1, this->c ) + "' (" + std::to_string((int) this->c) + ") at position " + std::to_string(this->i));
 
     }
     
@@ -190,7 +200,7 @@ int Clack::Expression::depthFindClose(void) {
 			--depth;
 		
 		if (ci >= this->expr.length())
-			EXPR_ERR("No closing parenthesis")
+			throw Clack::ExpressionError("No closing parenthesis to match position " + std::to_string(this->i));
 
 	}
 	return ci;

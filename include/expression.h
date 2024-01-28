@@ -13,7 +13,6 @@ class Expression {
 	int i = -1;
 	std::string expr;
 	Solver *solver;
-	bool errored;
 
 	void next(void);
 	char peek(void) const;
@@ -22,7 +21,7 @@ class Expression {
 
 	double expression(void);
 	double term(void);
-	double factor(void);
+	double factor(bool explore = true);
 
 	int depthFindClose(void);
 
@@ -30,7 +29,7 @@ class Expression {
 
 public:
 
-	Expression(std::string &e, Solver *solver);
+	Expression(const std::string &expr, Solver *solver);
 
 	double solve(void);
 

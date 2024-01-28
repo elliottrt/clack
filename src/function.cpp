@@ -1,5 +1,6 @@
 #include "function.h"
 #include "clack.h"
+#include "expression_error.h"
 
 void Clack::Function::makeReplaceSafe(void) {
 	this->safeExpression = functionExpression;
@@ -118,8 +119,7 @@ Clack::Function::Function(const std::string &sig, const std::string &funcexpr) {
 std::string Clack::Function::call(const std::vector<std::string> &args) {
 
 	if (args.size() != this->argNames.size()) {
-		std::cout << "ERROR: Expected " << this->argNames.size() << " arguments, got " << args.size() << std::endl;
-		return "0";
+		throw Clack::ExpressionError("Expected " + std::to_string(this->argNames.size()) + " arguments, got " + std::to_string(args.size()));
 	}
 
 	if (this->system) {
@@ -145,13 +145,11 @@ std::string Clack::Function::call(const std::vector<std::string> &args) {
 			bool functionPointer = var[1] == Clack::functionPointerPrefix;
 
 			if (functionPointer && args[arg][0] != Clack::functionPointerPrefix) {
-				std::cerr << "ERROR: Expected function pointer for argument " << arg << std::endl;
-				return "0";
+				throw Clack::ExpressionError("Expected function pointer for argument " + std::to_string(arg));
 			}
 
 			if (!functionPointer && args[arg][0] == Clack::functionPointerPrefix) {
-				std::cerr << "ERROR: Unexpected function pointer for argument " << arg << std::endl;
-				return "0";
+				throw Clack::ExpressionError("Unexpected function pointer for argument " + std::to_string(arg));
 			}
 
 			// Code from https://gist.github.com/GenesisFR/cceaf433d5b42dcdddecdddee0657292

@@ -40,6 +40,7 @@ double sign(double x) {
 // TODO: add <, <=, >, >=, == (or =), !=
 // as binary operators - greater and less are below addition and subtraction
 // and equals and not equals are below that
+// maybe !, &&, || as well?
 
 double equ(double x, double y) { return x == y; }
 

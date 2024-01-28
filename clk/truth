@@ -1,0 +1,12 @@
+file clk/std
+
+fsilent
+
+def zero() print(0)
+def one() print(1) * 0
+
+def loop() print(1) + loop()
+
+if(truth, &loop, &zero)
+
+fsilent
