@@ -1,11 +1,10 @@
 fsilent
 
 def zero() print(0)
-def one() print(1) * 0
+def one() print(1) + one()
 
-def loop() print(1) + loop()
 def if(condition, &then, &else) (condition && &then()) + (!condition && &else())
 
-if(truth, &loop, &zero)
+if(truth, &one, &zero)
 
 fsilent
