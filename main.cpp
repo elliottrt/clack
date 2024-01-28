@@ -2,11 +2,11 @@
 #include <string>
 
 #include "include/clack.h"
-#include "include/command_error.h"
 
 /*
 TODO: a way to change variables programmatically
 TODO: character literal ' ' (space) won't work
+TODO: macros that evaluate and are passed to Clack::Solver::runCommand()
 */
 
 int main(void) {

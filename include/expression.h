@@ -1,5 +1,7 @@
 #pragma once
 
+#include "clack.h"
+
 #include <string>
 #include <vector>
 
@@ -19,9 +21,9 @@ class Expression {
 	bool check(const char _c);
 	void to(ssize_t pos);
 
-	double expression(bool explore = true);
-	double term(bool explore = true);
-	double factor(bool explore = true);
+	mathtype_t expression(bool explore = true);
+	mathtype_t term(bool explore = true);
+	mathtype_t factor(bool explore = true);
 
 	int depthFindClose(void);
 
@@ -31,7 +33,7 @@ public:
 
 	Expression(const std::string &expr, Solver *solver);
 
-	double solve(void);
+	mathtype_t solve(void);
 
 };
 

@@ -3,36 +3,46 @@
 #include "function-defs.h"
 #include "expression_error.h"
 #include "command_error.h"
+#include "function.h"
 
 #include <sstream>
 #include <fstream>
+
+void Clack::Solver::setVarSystem(const std::string &var, mathtype_t val) { 
+	this->setVar(var, val, true); 
+}
+
+Clack::Solver::Solver() {
+	this->loadBuiltins();
+	this->reset();
+	this->fileSilent = false;
+}
 
 void Clack::Solver::loadBuiltins(void) {
 
 	setVarSystem("pi", 3.14159265358979323846);
 	setVarSystem("e",  2.71828182845904523536);
 
-	setFunctionSystemVoid("seed", &seed_);
-
+	setFunctionSystem("seed", &seed_);
 	setFunctionSystem("rand", &rand_);
 
-	setFunctionSystem("sqrt", (double(*)(double))&std::sqrt);
-	setFunctionSystem("sin",  (double(*)(double))&std::sin);
-	setFunctionSystem("cos",  (double(*)(double))&std::cos);
-	setFunctionSystem("tan",  (double(*)(double))&std::tan);
-	setFunctionSystem("asin",  (double(*)(double))&std::asin);
-	setFunctionSystem("acos",  (double(*)(double))&std::acos);
-	setFunctionSystem("atan",  (double(*)(double))&std::atan);
-	setFunctionSystem("ln",  (double(*)(double))&std::log);
-	setFunctionSystem("ceil",  (double(*)(double))&std::ceil);
-	setFunctionSystem("floor",  (double(*)(double))&std::floor);
-	setFunctionSystem("round",  (double(*)(double))&std::round);
+	setFunctionSystem("sqrt", (mathtype_t(*)(mathtype_t))&std::sqrt);
+	setFunctionSystem("sin",  (mathtype_t(*)(mathtype_t))&std::sin);
+	setFunctionSystem("cos",  (mathtype_t(*)(mathtype_t))&std::cos);
+	setFunctionSystem("tan",  (mathtype_t(*)(mathtype_t))&std::tan);
+	setFunctionSystem("asin",  (mathtype_t(*)(mathtype_t))&std::asin);
+	setFunctionSystem("acos",  (mathtype_t(*)(mathtype_t))&std::acos);
+	setFunctionSystem("atan",  (mathtype_t(*)(mathtype_t))&std::atan);
+	setFunctionSystem("ln",  (mathtype_t(*)(mathtype_t))&std::log);
+	setFunctionSystem("ceil",  (mathtype_t(*)(mathtype_t))&std::ceil);
+	setFunctionSystem("floor",  (mathtype_t(*)(mathtype_t))&std::floor);
+	setFunctionSystem("round",  (mathtype_t(*)(mathtype_t))&std::round);
 
 	setFunctionSystem("print", &print);
 	setFunctionSystem("printa", &printa);
 
-	setFunctionSystem("mod", (double(*)(double, double))&std::fmod);
-	setFunctionSystem("pow", (double(*)(double, double))&std::pow);
+	setFunctionSystem("mod", (mathtype_t(*)(mathtype_t, mathtype_t))&std::fmod);
+	setFunctionSystem("pow", (mathtype_t(*)(mathtype_t, mathtype_t))&std::pow);
 	setFunctionSystem("log", &logbase);
 }
 
@@ -55,7 +65,7 @@ void Clack::Solver::reset(void) {
 	}
 }
 
-void Clack::Solver::setVar(const std::string var, const double val, const bool system) {
+void Clack::Solver::setVar(const std::string var, const mathtype_t val, const bool system) {
 	if (this->variables.count(var) && this->variables.at(var).system) {
 		throw Clack::CommandError("Attempted to set system variable " + var);
 	} else {
@@ -64,7 +74,7 @@ void Clack::Solver::setVar(const std::string var, const double val, const bool s
 	}
 }
 
-double Clack::Solver::getVar(const std::string &name) {
+Clack::mathtype_t Clack::Solver::getVar(const std::string &name) {
 	if (this->varExists(name)) 
 		return this->variables.at(name).value;
 	else 
@@ -112,7 +122,42 @@ size_t Clack::Solver::getFunctionCount(void) const {
 	return this->functions.size();
 }
 
-double Clack::Solver::solve(std::string expr) {
+void Clack::Solver::setFunctionSystem(std::string funcName, std::function<mathtype_t(void)> func) {
+	if (func != nullptr) {
+		std::pair<std::string, int> funcPair = std::make_pair(funcName, 0);
+		this->functions.erase(funcPair);
+		this->functions.insert({funcPair, Clack::Function(func)});
+	}
+}
+
+void Clack::Solver::setFunctionSystem(std::string funcName, std::function<mathtype_t(mathtype_t)> func) {
+	if (func != nullptr) {
+		std::pair<std::string, int> funcPair = std::make_pair(funcName, 1);
+		this->functions.erase(funcPair);
+		this->functions.insert({funcPair, Clack::Function(func)});
+	}
+}
+
+void Clack::Solver::setFunctionSystem(std::string funcName, std::function<mathtype_t(mathtype_t, mathtype_t)> func) {
+	if (func != nullptr) {
+		std::pair<std::string, int> funcPair = std::make_pair(funcName, 2);
+		this->functions.erase(funcPair);
+		this->functions.insert({funcPair, Clack::Function(func)});
+	}
+}
+
+void Clack::Solver::setFunction(std::string funcName, std::string args, std::string funcexpr) {
+	std::pair<std::string, int> funcPair = std::make_pair(funcName, Clack::Function::parseArgNames(args).size());
+
+	if (this->functions.count(funcPair) && this->functions.at(funcPair).getSystem()) {
+		throw Clack::CommandError("Attempted to set system function " + funcName);
+	} else {
+		this->functions.erase(funcPair);
+		this->functions.insert({funcPair, Clack::Function(args, funcexpr)});
+	}
+}
+
+Clack::mathtype_t Clack::Solver::solve(std::string expr) {
 
 	Clack::Expression clackExpression = Clack::Expression(expr, this);
 	this->lastResult = clackExpression.solve();
@@ -124,11 +169,12 @@ void Clack::Solver::runCommand(std::string cmd) {
 
 	if (cmd.size() == 0 || cmd[0] == '#') return;
 
+	std::cout << std::setprecision(std::numeric_limits<Clack::mathtype_t>::digits10);
+
 	std::stringstream cmdSS(cmd);
 	std::string part;
 	cmdSS >> part;
 
-	// TODO: turn map into map of lambdas
 	// TODO: command descriptions
 
 	static std::map<std::string, int> commandList = {{
@@ -149,7 +195,7 @@ void Clack::Solver::runCommand(std::string cmd) {
 
 		try {
 
-			double result = this->solve(cmd);
+			mathtype_t result = this->solve(cmd);
 			std::cout << "Result: " << result << std::endl;
 
 		} catch (const Clack::ExpressionError &exprError) {
@@ -166,7 +212,7 @@ void Clack::Solver::runCommand(std::string cmd) {
 			// and the rest can only be numbers and letters
 			if (!std::isalpha(part[0])) break;
 			for (size_t i = 1; i < part.size(); i++) if (!std::isalnum(part[i])) break;
-			double variableValue = this->solve(cmd.substr(4 + part.size(), std::string::npos));
+			mathtype_t variableValue = this->solve(cmd.substr(4 + part.size(), std::string::npos));
 			this->setVar(part, variableValue);
 		} break;
 		case 1: {

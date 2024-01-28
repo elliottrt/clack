@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <sstream>
 
 void Clack::Expression::next(void) { 
 	this->c = ++this->i < (ssize_t) this->expr.size() ? this->expr[i] : -1; 
@@ -33,12 +34,12 @@ Clack::Expression::Expression(const std::string &expr, Solver *solver) {
 	this->next();
 }
 
-double Clack::Expression::solve(void) {
+Clack::mathtype_t Clack::Expression::solve(void) {
 	return this->expression();
 }
 
-double Clack::Expression::expression(bool explore) {
-	double x = this->term(explore);
+Clack::mathtype_t Clack::Expression::expression(bool explore) {
+	Clack::mathtype_t x = this->term(explore);
 
     for (;;) {
 		//std::cout << this->expr[this->i] << " rest of expr (expr): " << this->expr.substr(this->i) << std::endl;
@@ -95,8 +96,8 @@ double Clack::Expression::expression(bool explore) {
     }
 }
 
-double Clack::Expression::term(bool explore) {
-	double x = this->factor(explore);
+Clack::mathtype_t Clack::Expression::term(bool explore) {
+	Clack::mathtype_t x = this->factor(explore);
 
     for (;;) {
 		// std::cout << this->expr[this->i] << " rest of expr (term): " << this->expr.substr(this->i) << std::endl;
@@ -119,7 +120,7 @@ double Clack::Expression::term(bool explore) {
 
 // explore: do we evaluate variables and function calls?
 // we don't want to when we short circuit
-double Clack::Expression::factor(bool explore) {
+Clack::mathtype_t Clack::Expression::factor(bool explore) {
 	if (this->check('+')) return this->factor(); // unary plus
     if (this->check('-')) return -this->factor(); // unary minus
 	if (this->check('!')) return !this->factor(); // logical not
@@ -128,7 +129,7 @@ double Clack::Expression::factor(bool explore) {
 
 	// std::cout << "rest of expr (factor): " << this->expr.substr(this->i) << std::endl;
         
-    double x = 0;
+    Clack::mathtype_t x = 0;
     int startPos = this->i;
     std::string argList = "";
 
@@ -157,11 +158,16 @@ double Clack::Expression::factor(bool explore) {
 
 		std::string number = this->expr.substr(startPos, this->i - startPos);
 
-		// TODO: replace this with try/catch around std::stod?
+		/*
 		if (number == "." || std::count(number.cbegin(), number.cend(), '.') > 1)
 			throw Clack::ExpressionError("Invalid number literal " + number);
+		*/
 
-        x = std::stod(number);
+		try {
+        	x = std::stold(number);
+		} catch (const std::invalid_argument &e) {
+			throw Clack::ExpressionError("Invalid number literal " + number);
+		}
 
 	} else if (this->check('\'')) {
 

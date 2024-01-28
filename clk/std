@@ -24,6 +24,9 @@ def clamp(x, mi, ma) min(max(x, mi), ma)
 
 # logic
 
+def not(x) !x
+def and(x, y) x && y
+def or(x, y) x || y
 def xor(x,y) (x && !y) || (!x && y)
 def nand(x,y) !(x&&y)
 def nor(x,y) !(x||y)

@@ -46,7 +46,7 @@ void Clack::Function::makeReplaceSafe(void) {
 }
 
 std::string Clack::Function::toSafeName(const std::string &var) {
-	return Clack::Function::safePrefix + var + Clack::Function::safeSuffix;
+	return Clack::argumentSafePrefix + var + Clack::argumentSafeSuffix;
 }
 
 std::string Clack::Function::unSafeName(const std::string &var) {
@@ -84,21 +84,16 @@ std::vector<std::string> Clack::Function::parseArgNames(const std::string &args)
 	return argNames;
 }
 
-Clack::Function::Function(std::function<void(double)> function) {
-	this->voidfunction1 = function;
-	this->argNames.push_back("x");
-}
-
-Clack::Function::Function(std::function<double(void)> function) {
+Clack::Function::Function(std::function<mathtype_t(void)> function) {
 	this->function0 = function;
 }
 
-Clack::Function::Function(std::function<double(double)> function) {
+Clack::Function::Function(std::function<mathtype_t(mathtype_t)> function) {
 	this->function1 = function;
 	this->argNames.push_back("x");
 }
 
-Clack::Function::Function(std::function<double(double, double)> function) {
+Clack::Function::Function(std::function<mathtype_t(mathtype_t, mathtype_t)> function) {
 	this->function2 = function;
 	this->argNames.push_back("x");
 	this->argNames.push_back("y");
@@ -128,11 +123,11 @@ std::string Clack::Function::call(const std::vector<std::string> &args) {
 			case 0: return std::to_string(this->function0());
 			case 1: {
 				if (this->function1)
-					return std::to_string(this->function1(std::stod(args[0])));
+					return std::to_string(this->function1(std::stold(args[0])));
 				else
 					return std::to_string(0.0);
 			}
-			case 2: return std::to_string(this->function2(std::stod(args[0]), std::stod(args[1])));
+			case 2: return std::to_string(this->function2(std::stold(args[0]), std::stold(args[1])));
 			default: std::cout << "unreachable: system function with 3+ args" << std::endl; return "0";
 		}
 	} else {

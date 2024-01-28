@@ -1,16 +1,18 @@
 #pragma once
 
+#include "clack.h"
+
 #include <cmath>
 #include <random>
 
 // printing
 
-double print(double x) {
+Clack::mathtype_t print(Clack::mathtype_t x) {
 	std::cout << x;
 	return x;
 }
 
-double printa(double a) {
+Clack::mathtype_t printa(Clack::mathtype_t a) {
 	char c = (char) a;
 	std::cout << c;
 	return a;
@@ -20,12 +22,15 @@ double printa(double a) {
 
 std::minstd_rand random_;
 
-void seed_(double s) { random_.seed(s); }
+Clack::mathtype_t seed_(Clack::mathtype_t s) { 
+	random_.seed(s); 
+	return s;
+}
 
-double rand_(void) { return random_() / (double) std::minstd_rand::max(); }
+Clack::mathtype_t rand_(void) { return random_() / (Clack::mathtype_t) std::minstd_rand::max(); }
 
 // math
 
-double logbase(double x, double base) {
+Clack::mathtype_t logbase(Clack::mathtype_t x, Clack::mathtype_t base) {
 	return std::log2(x) / std::log2(base);
 }
