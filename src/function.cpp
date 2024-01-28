@@ -116,11 +116,11 @@ Clack::Function::Function(const std::string &sig, const std::string &funcexpr) {
 }
 
 std::string Clack::Function::call(const std::vector<std::string> &args) {
-	if (args.size() != this->argNames.size()) {
-		std::cout << "Expected " << this->argNames.size() << " arguments, got " << args.size() << std::endl;
-	}
 
-	//for (auto s : args) std::cout << s << std::endl;
+	if (args.size() != this->argNames.size()) {
+		std::cout << "ERROR: Expected " << this->argNames.size() << " arguments, got " << args.size() << std::endl;
+		return "0";
+	}
 
 	if (this->system) {
 		switch (this->argNames.size()) {
@@ -137,8 +137,6 @@ std::string Clack::Function::call(const std::vector<std::string> &args) {
 	} else {
 
 		std::string expr = "(" + this->safeExpression + ")";
-
-		std::cout << "expr: " << expr << std::endl;
 
 		for (int arg = 0; arg < this->argNames.size(); arg++) {
 			// check if the expected argument is a function pointer

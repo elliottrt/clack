@@ -24,7 +24,7 @@ equ(compound(0.75), 4/3)
 equ(multivar(1, 2, 3), 6)
 
 # check if we can handle a lot of variables
-equ(manyvar(0, 0, tan(pi), 0, 0, 100, 0, -sqrt(15), 87, 0, 1, 0, 0, 50, 0, 1005, nequ(10, 10), 0, 0, 0, -10, 0, 0, 0, sin(pi), 0, tan(pi)+15)
+equ(manyvar(0, 0, tan(pi), 0, 0, 100, 0, -sqrt(15), 87, 0, 1, 0, 0, 50, 0, 1005, nequ(10, 10), 0, 0, 0, -10, 0, 0, 0, sin(pi), 0), tan(pi)+15)
 
 # check if logic works
 equ(imax(50, 10), 50)
@@ -53,5 +53,9 @@ equ(call(&pointer, 150, 100), 250)
 # checking if arguments to a function will
 # be chosen over variables of the same name
 equ(priority(30), 30)
+
+# checking if argument lists inside of 
+# argument lists work
+equ(multivar(samename(), sin(pi/2), 10), 31)
 
 fsilent

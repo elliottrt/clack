@@ -1,15 +1,21 @@
-CPPC=g++
+CXX=g++
 
 OUT=clack
 
-CPPFLAGS=-Os -std=c++11 -Iinclude/
+CXXFLAGS=-O2 -std=c++11 -Iinclude/
 
 CPPSRC=$(wildcard src/*.cpp) $(wildcard *.cpp)
 
-all: compile
+all: $(OUT)
 
-compile:
-	$(CPPC) -o $(OUT) $(CPPSRC) $(CPPFLAGS)
+$(OUT): $(CPPSRC)
+	$(CXX) -o $(OUT) $(CPPSRC) $(CXXFLAGS)
 
 run: $(OUT)
 	./$(OUT)
+
+clean:
+	rm $(OUT)
+
+test: $(compile)
+	echo "file clk/tests" | ./$(OUT)

@@ -4,14 +4,6 @@
 
 #include <sstream>
 #include <fstream>
-#include <random>
-
-std::minstd_rand random_;
-
-void seed_(double s) { random_.seed(s); }
-
-double rand_(void) { return random_() / (double) std::minstd_rand::max(); }
-
 
 void Clack::Solver::loadBuiltins(void) {
 
@@ -36,7 +28,11 @@ void Clack::Solver::loadBuiltins(void) {
 	setFunctionSystem("round",  (double(*)(double))&std::round);
 	setFunctionSystem("sign", (double(*)(double))&sign);
 
+	setFunctionSystem("print", &print);
+	setFunctionSystem("printa", &printa);
+
 	setFunctionSystem("mod", (double(*)(double, double))&std::fmod);
+	setFunctionSystem("pow", (double(*)(double, double))&std::pow);
 	//setFunctionSystem("max", (double(*)(double, double))&std::fmax);
 	//setFunctionSystem("min", (double(*)(double, double))&std::fmin);
 	setFunctionSystem("log", &logbase);
@@ -49,6 +45,7 @@ void Clack::Solver::loadBuiltins(void) {
 }
 
 void Clack::Solver::reset(void) { 
+
 	auto viter = this->variables.begin();
 	auto vendIter = this->variables.end();
 
@@ -92,15 +89,25 @@ size_t Clack::Solver::getVarCount(void) const {
 }
 
 std::string Clack::Solver::callFunction(const std::string &name, const std::vector<std::string> &args) {
+
 	std::pair<std::string, int> funcPair = std::make_pair(name, args.size());
+
 	if (this->functionExists(name, args.size())) {
+
 		return this->functions.at(funcPair).call(args);
+
 	} else if (this->functionExists(name)) {
+
 		std::cerr << "ERROR: Wrong number of arguments for function " << name << std::endl;
+
 	} else {
+
 		std::cerr << "ERROR: No function named '" << name << std::endl;
+
 	}
+	
 	return "0";
+
 }
 
 bool Clack::Solver::functionExists(const std::string &name, const int args) const {
@@ -147,7 +154,6 @@ void Clack::Solver::runCommand(std::string cmd) {
 	}};
 
 	if (commandList.count(part) == 0) {
-		//std::cout << "Unknown command \'" + part + "\'\n";
 		std::cout << this->solve(cmd) << std::endl;
 		return;
 	}
@@ -168,20 +174,24 @@ void Clack::Solver::runCommand(std::string cmd) {
 			int cmds_ran = 0;
 			while (std::getline(f, line)) {
 				if (line.length() > 0) {
-					if (!this->fileSilent && line != "fsilent") std::cout << ">" + line + "\n";
+					if (!this->fileSilent && line != "fsilent") std::cout << "$ " + line + "\n";
 					this->runCommand(line);
 					cmds_ran++;
 				}
 			}
 			std::cout << "Ran " << cmds_ran << " commands from \'" << cmd.substr(5, std::string::npos) << "\'\n";
 		} break;
-		case 3: { this->reset(); } break;
+		case 3: { 
+			this->reset(); 
+		} break;
 		case 4: {
 			for (auto v: this->variables) {
 			    std::cout << '\'' << v.first << '\'' << " = " << v.second.value << '\n';
 			}  
 		} break;
-		case 5: { std::cout << "\e[2J\e[H"; } break;
+		case 5: { 
+			std::cout << "\e[2J\e[H"; 
+		} break;
 		case 6: {
 			cmdSS >> part;
 			// We only allow the first character to be a letter,
@@ -208,14 +218,20 @@ void Clack::Solver::runCommand(std::string cmd) {
 			} 
 		} break;
 		case 8: {
-			//cmdSS >> part;
 
 			std::getline(cmdSS, part, ')'); part += ")";
 
-			int defStart = 4 + part.size();
+			int defStart = std::string("def ").size() + part.size();
+
+			// TODO: this is a bad way of checking for parenthesis
+			if (defStart - 1 >= cmd.length()) {
+				std::cerr << "ERROR: function definition requires parenthesis" << std::endl;
+				return;
+			}
 
 			std::string functionExpr = cmd.substr(defStart - 1);
-			// if there is no funciton body, we error
+
+			// if there is no function body, we error
 			if (functionExpr.size() == 0 || (functionExpr.size() == 1 && functionExpr == " ")) {
 				std::cerr << "ERROR: No function definition for function " << part << std::endl;
 				return;

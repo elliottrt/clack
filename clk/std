@@ -3,6 +3,7 @@ fsilent
 # A collection of utility functions for clack
 
 # simple derivation
+
 var deriv_eps 0.0001
 def deriv(&f, x, e) ((&f(x+e)-&f(x))/e)
 def deriv(&f, x) deriv(&f, x, deriv_eps)
@@ -10,6 +11,8 @@ def deriv(&f, x) deriv(&f, x, deriv_eps)
 # random numbers
 def randrange(min, max) (rand() * (max - min)) + min
 def randrangei(min, max) floor(randrange(min, max))
+
+# useful functions
 
 def abs(x) x * (greaterequ(x, 0) * 2 - 1)
 
@@ -28,6 +31,16 @@ def nand(x,y) 1 - x * y
 def nor(x,y) 1 - (x + y - x * y)
 def xnor(x,y) 1 - x - y + 2 * x * y
 
-def bin(x) 1 - equ(x,0)
+def bin(x) nequ(x,0)
+
+# control
+
+def if(condition, then) bin(condition) * then
+def if(condition, then, else) (bin(condition) * then) + (not(bin(condition)) * else)
+
+def do(&func, times) times * &func() * do(&func, times - 1)
+def do(&func, a0, times) times * &func(a0) * do(&func, a0, times - 1)
+def do(&func, a0, a1, times) times * &func(a0, a1) * do(&func, a0, a1, times - 1)
+def do(&func, a0, a1, a2, times) times * &func(a0, a1, a2) * do(&func, a0, a1, a2, times - 1)
 
 fsilent

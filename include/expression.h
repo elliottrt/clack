@@ -18,6 +18,7 @@ class Expression {
 	void next(void);
 	char peek(void) const;
 	bool check(const char _c);
+	void to(int pos);
 
 	double expression(void);
 	double term(void);
