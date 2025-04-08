@@ -20,8 +20,9 @@ Clack::Solver::Solver() {
 
 void Clack::Solver::loadBuiltins(void) {
 
-	setVarSystem("pi", 3.14159265358979323846);
-	setVarSystem("e",  2.71828182845904523536);
+	setVarSystem("pi",  3.14159265358979323846);
+	setVarSystem("e",   2.71828182845904523536);
+	setVarSystem("phi", 1.61803398874989484820);
 
 	setFunctionSystem("seed", &seed_);
 	setFunctionSystem("rand", &rand_);
@@ -165,9 +166,9 @@ Clack::mathtype_t Clack::Solver::solve(std::string expr) {
 	return this->lastResult;
 }
 
-void Clack::Solver::runCommand(std::string cmd) {
+bool Clack::Solver::runCommand(std::string cmd) {
 
-	if (cmd.size() == 0 || cmd[0] == '#') return;
+	if (cmd.size() == 0 || cmd[0] == '#') return true;
 
 	std::cout << std::setprecision(std::numeric_limits<Clack::mathtype_t>::digits10);
 
@@ -188,7 +189,9 @@ void Clack::Solver::runCommand(std::string cmd) {
 		{"def", 		8},
 		{"save",		9},
 		{"help",		10},
-		{"fsilent", 	11}
+		{"fsilent", 	11},
+		{"quit",		12},
+		{"exit",		12}
 	}};
 
 	if (commandList.count(part) == 0) {
@@ -202,7 +205,7 @@ void Clack::Solver::runCommand(std::string cmd) {
 			std::cerr << exprError.what() << std::endl;
 		}
 		
-		return;
+		return true;
 	}
 
 	switch(commandList[part]) {
@@ -318,10 +321,15 @@ void Clack::Solver::runCommand(std::string cmd) {
 		case 11: {
 			this->fileSilent = !this->fileSilent;
 		} break;
+		case 12: {
+			return false;
+		} break;
 		default: {
 			std::cerr << "Unreachable: default command" << std::endl;
 		}
 	}
+
+	return true;
 }
 
 void Clack::Solver::dumpState(std::string toFile) {

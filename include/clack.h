@@ -73,7 +73,7 @@ public:
 
 	mathtype_t solve(std::string expr);
 
-	void runCommand(std::string cmd);
+	bool runCommand(std::string cmd);
 
 	void dumpState(std::string toFile);
 };

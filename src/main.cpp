@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 
-#include "include/clack.h"
+#include "clack.h"
 
 /*
 TODO: a way to change variables programmatically
@@ -13,13 +13,14 @@ int main(void) {
 
 	Clack::Solver solver = Clack::Solver();
 
-	while (1) {
+	bool running = true;
+	while (running) {
 		std::string in;
 		std::cout << "$ ";
 		std::getline(std::cin, in);
 		if (in.size() == 0) break;
 
-		try { solver.runCommand(in); }
+		try { running = solver.runCommand(in); }
 		catch (const Clack::CommandError &cmdError) {
 			std::cerr << cmdError.what() << std::endl;
 		}

@@ -1,21 +1,30 @@
-CXX=g++
 
-OUT=clack
+TARGET=main
+SOURCE=src
+INCLUDE=include
 
-CXXFLAGS=-O2 -std=c++11 -Iinclude/ -Wall -Wextra -Wpedantic
+CXXFLAGS:=$(CXXFLAGS) -std=c++11 -Wall -Wextra -Werror -I$(INCLUDE)
 
-CPPSRC=$(wildcard src/*.cpp) $(wildcard *.cpp)
+CXXSRC=$(shell find $(SOURCE) -type f -name '*.cpp')
+CXXOBJ=$(CXXSRC:.cpp=.o)
+CXXDEP=$(CXXSRC:.cpp=.d)
 
-all: $(OUT)
+.PHONY: clean test
 
-$(OUT): $(CPPSRC)
-	$(CXX) -o $(OUT) $(CPPSRC) $(CXXFLAGS)
+all: $(TARGET)
 
-run: $(OUT)
-	./$(OUT)
+-include $(CXXDEP)
+
+$(TARGET): $(CXXOBJ)
+	$(CXX) $(CXXFLAGS) -o $@ $(CXXOBJ)
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -MMD -MP -c -o $@ $<
 
 clean:
-	rm $(OUT)
+	$(RM) $(TARGET)
+	$(RM) $(CXXOBJ)
+	$(RM) $(CXXDEP)
 
-test: $(compile)
-	echo "file clk/tests" | ./$(OUT)
+test: $(TARGET)
+	echo "file clk/tests" | ./$(TARGET)
